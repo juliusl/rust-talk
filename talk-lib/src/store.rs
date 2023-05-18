@@ -88,6 +88,79 @@ where
 {
 }
 
+impl<T> Create<T> for Vec<T> 
+where
+    for<'a> T: Item<'a>,
+{
+    fn create(&mut self, item: &T) -> Result<&T, Error> {
+        self.push(item.clone());
+        Ok(self.last().expect("should exist just added"))
+    }
+}
+
+impl<T> Read<T> for Vec<T> 
+where
+    for<'a> T: Item<'a>
+{
+    fn read(&self, item: &T) -> Result<&T, Error> {
+        let (pk, registry_id) = item.as_ref().get_row_id();
+
+        if let Some((_, t)) = self
+            .iter()
+            .enumerate()
+            .find(|(_, i)| match i.as_ref().get_row_id() {
+                (ref _p, ref _rid) if pk == *_p && registry_id == *_rid => true,
+                _ => false,
+            }) 
+        {
+            Ok(t)
+        } else {
+            Err(Error::new())
+        }
+    }
+}
+
+impl<T> Delete<T> for Vec<T>
+where
+    for<'a> T: Item<'a> 
+{
+    fn delete(&mut self, item: &T) -> Result<T, Error> {
+        let (pk, registry_id) = item.as_ref().get_row_id();
+
+        if let Some((loc, _item)) = self.iter().enumerate().find(|(_, i)| {
+            match i.as_ref().get_row_id() {
+                (ref _p, ref _rid) if pk == *_p && registry_id == *_rid  => true,
+                _ => false
+            }
+        }) {
+            Ok(self.remove(loc))
+        } else {
+            Err(Error::new())
+        }
+    }
+}
+
+impl<T> Replace<T> for Vec<T>
+where
+    for<'a> T: Item<'a> 
+{
+    fn replace(&mut self, item: &T) -> Result<&T, Error> {
+        let (pk, registry_id) = item.as_ref().get_row_id();
+
+        if let Some((_, replacing)) = self.iter_mut().enumerate().find(|(_, i)| {
+            match i.as_ref().get_row_id() {
+                (ref _p, ref _rid) if pk == *_p && registry_id == *_rid  => true,
+                _ => false
+            }
+        }) {
+            *replacing = item.clone();
+            self.read(item)
+        } else {
+            Err(Error::new())
+        }
+    }
+}
+
 // impl<T> Read<T> for Vec<T> 
 // where
 //     for<'a> T: Item<'a>
@@ -133,70 +206,6 @@ where
 //         if let Some((loc, _item)) = self.find_mut(item) {
 //             *_item = item.clone();
 //             Ok(self.get(loc).expect("should exist jsut added"))
-//         } else {
-//             Err(Error::new())
-//         }
-//     }
-// }
-
-
-// impl<T> Read<T> for Vec<T> 
-// where
-//     for<'a> T: Item<'a>
-// {
-//     fn read(&self, item: &T) -> Result<&T, Error> {
-//         let (pk, registry_id) = item.as_ref().get_row_id();
-
-//         if let Some((_, t)) = self
-//             .iter()
-//             .enumerate()
-//             .find(|(_, i)| match i.as_ref().get_row_id() {
-//                 (ref _p, ref _rid) if pk == *_p && registry_id == *_rid => true,
-//                 _ => false,
-//             }) 
-//         {
-//             Ok(t)
-//         } else {
-//             Err(Error::new())
-//         }
-//     }
-// }
-
-// impl<T> Delete<T> for Vec<T>
-// where
-//     for<'a> T: Item<'a> 
-// {
-//     fn delete(&mut self, item: &T) -> Result<T, Error> {
-//         let (pk, registry_id) = item.as_ref().get_row_id();
-
-//         if let Some((loc, _item)) = self.iter().enumerate().find(|(_, i)| {
-//             match i.as_ref().get_row_id() {
-//                 (ref _p, ref _rid) if pk == *_p && registry_id == *_rid  => true,
-//                 _ => false
-//             }
-//         }) {
-//             Ok(self.remove(loc))
-//         } else {
-//             Err(Error::new())
-//         }
-//     }
-// }
-
-// impl<T> Replace<T> for Vec<T>
-// where
-//     for<'a> T: Item<'a> 
-// {
-//     fn replace(&mut self, item: &T) -> Result<&T, Error> {
-//         let (pk, registry_id) = item.as_ref().get_row_id();
-
-//         if let Some((_, replacing)) = self.iter_mut().enumerate().find(|(_, i)| {
-//             match i.as_ref().get_row_id() {
-//                 (ref _p, ref _rid) if pk == *_p && registry_id == *_rid  => true,
-//                 _ => false
-//             }
-//         }) {
-//             *replacing = item.clone();
-//             self.read(item)
 //         } else {
 //             Err(Error::new())
 //         }

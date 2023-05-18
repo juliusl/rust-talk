@@ -1,15 +1,11 @@
-use talk_derive::Store;
-use crate::Error;
 use crate::store::*;
 
 /// Memory implementation for some store T
 ///
-#[derive(Store)]
 pub struct MemoryStore<T>
 where
     for<'a> T: Item<'a>,
 {
-    #[storage]
     items: Vec<T>,
     store_info: StoreInfo,
 }
@@ -96,83 +92,53 @@ where
 //     }
 // }
 
-// impl<T> Replace<T> for MemoryStore<T>
-// where
-//     for<'a> T: Item<'a>,
-// {
-//     fn replace(&mut self, item: &T) -> Result<&T, crate::Error> {
-//         if let Some((_, replacing)) = self.find_mut(&item) {
-//             *replacing = item.clone();
-//             // Ok(self.items.get(loc).expect("should exist just replaced"))
-//         }
-//         // } else {
-//         //     Err(Error::new())
-//         // }
+impl<T> Replace<T> for MemoryStore<T>
+where
+    for<'a> T: Item<'a>,
+{
+    fn replace(&mut self, item: &T) -> Result<&T, crate::Error> {
+        self.items.replace(item)
+    }
+}
 
-        
-//         self.items.read(item)
+impl<T> Create<T> for MemoryStore<T>
+where
+    for<'a> T: Item<'a>,
+{
+    fn create(&mut self, item: &T) -> Result<&T, Error> {
+        let mut cloned = item.clone();
+        cloned.as_mut().set_row_id(
+            item.partition(),
+            item.id(),
+        );
 
-//         // self.items.replace(item)
-//     }
-// }
+        let created = { self.items.create(&cloned)? };
+        let created = created.clone();
+        self.items.read(&created)
+    }
+}
 
-// impl<T> Create<T> for MemoryStore<T>
-// where
-//     for<'a> T: Item<'a>,
-// {
-//     fn create(&mut self, item: &T) -> Result<&T, Error> {
-//         let mut cloned = item.clone();
-//         // Naive example
-//         // item.as_mut().set_row_id(
-//         //     "test", 
-//         //     format!("item-{}", self.items.len())
-//         // );
-//         cloned.as_mut().set_row_id(
-//             item.partition(),
-//             item.id(),
-//         );
+impl<T> Delete<T> for MemoryStore<T>
+where
+    for<'a> T: Item<'a>,
+{
+    fn delete(&mut self, item: &T) -> Result<T, Error> {
+        self.items.delete(item)
+    }
+}
 
-//         // self.items.push(cloned);
-//         // Ok(self.items.last().expect("should exist just added"))
+impl<T> Read<T> for MemoryStore<T>
+where
+    for<'a> T: Item<'a>,
+{
+    fn read(&self, item: &T) -> Result<&T, Error> {
+        self.items.read(item)
+    }
+}
 
-//         let created = { self.items.create(&cloned)? };
-//         let created = created.clone();
-//         self.items.read(&created)
-//     }
-// }
-
-// impl<T> Delete<T> for MemoryStore<T>
-// where
-//     for<'a> T: Item<'a>,
-// {
-//     fn delete(&mut self, item: &T) -> Result<T, Error> {
-//         // if let Some((loc, _)) = self.find_mut(item) {
-//         //     let removed = self.items.remove(loc);
-//         //     Ok(removed)
-//         // } else {
-//         //     Err(Error::new())
-//         // }
-
-//         self.items.delete(item)
-//     }
-// }
-
-// impl<T> Read<T> for MemoryStore<T>
-// where
-//     for<'a> T: Item<'a>,
-// {
-//     fn read(&self, item: &T) -> Result<&T, Error> {
-//         if let Some((_, _item)) = self.find(item) {
-//             Ok(_item)
-//         } else {
-//             Err(Error::new())
-//         }
-//     }
-// }
-
-// impl<T> Store<T> for MemoryStore<T>
-// where
-//     for<'a> T: Item<'a>,
-//     Self: From<StoreInfo> + AsRef<StoreInfo>,
-// {
-// }
+impl<T> Store<T> for MemoryStore<T>
+where
+    for<'a> T: Item<'a>,
+    Self: From<StoreInfo> + AsRef<StoreInfo>,
+{
+}
