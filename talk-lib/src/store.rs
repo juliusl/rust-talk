@@ -2,15 +2,18 @@ use serde::Serialize;
 use serde::Deserialize;
 use crate::Item;
 use crate::Error;
-
 mod memory;
 pub use memory::MemoryStore;
 
-/// Information to derive a store
+/// Information about a store
 ///
 #[derive(Serialize, Deserialize)]
 pub struct StoreInfo {
+    /// Name of the database
+    /// 
     database_name: String,
+    /// Id of the container
+    /// 
     container_id: String,
 }
 
@@ -84,18 +87,57 @@ where
 {
 }
 
-impl<T> Read<T> for Vec<T> 
-where
-    for<'a> T: Item<'a>
-{
-    fn read(&self, item: &T) -> Result<&T, Error> {
-        if let Some((_, t)) = self.find(item) {
-            Ok(t)
-        } else {
-            Err(Error::new())
-        }
-    }
-}
+// impl<T> Read<T> for Vec<T> 
+// where
+//     for<'a> T: Item<'a>
+// {
+//     fn read(&self, item: &T) -> Result<&T, Error> {
+//         if let Some((_, t)) = self.find(item) {
+//             Ok(t)
+//         } else {
+//             Err(Error::new())
+//         }
+//     }
+// }
+
+// impl<T> Create<T> for Vec<T> 
+// where
+//     for<'a> T: Item<'a>
+// {
+//     fn create(&mut self, item: &T) -> Result<&T, Error> {
+//         <Self as InsertItem<T>>::insert(self, item);
+
+//         self.read(item)
+//     }
+// }
+
+// impl<T> Delete<T> for Vec<T>
+// where
+//     for<'a> T: Item<'a> 
+// {
+//     fn delete(&mut self, item: &T) -> Result<T, Error> {
+//         if let Some((loc, _)) = self.find(item) {
+//             Ok(self.remove_by_index(loc).expect("should exist just found it"))
+//         } else {
+//             Err(Error::new())
+//         }
+//     }
+// }
+
+// impl<T> Replace<T> for Vec<T> 
+// where
+//     for<'a> T: Item<'a> 
+// {
+//     fn replace(&mut self, item: &T) -> Result<&T, Error> {
+//         if let Some((loc, _item)) = self.find_mut(item) {
+//             *_item = item.clone();
+//             Ok(self.get(loc).expect("should exist jsut added"))
+//         } else {
+//             Err(Error::new())
+//         }
+//     }
+// }
+
 
 // impl<T> Read<T> for Vec<T> 
 // where
@@ -119,30 +161,6 @@ where
 //     }
 // }
 
-impl<T> Create<T> for Vec<T> 
-where
-    for<'a> T: Item<'a>
-{
-    fn create(&mut self, item: &T) -> Result<&T, Error> {
-        let cloned = item.clone();
-        self.push(cloned);
-        Ok(self.last().expect("should exist just added"))
-    }
-}
-
-impl<T> Delete<T> for Vec<T>
-where
-    for<'a> T: Item<'a> 
-{
-    fn delete(&mut self, item: &T) -> Result<T, Error> {
-        if let Some((loc, _)) = self.find(item) {
-            Ok(self.remove_by_index(loc).expect("should exist just found it"))
-        } else {
-            Err(Error::new())
-        }
-    }
-}
-
 // impl<T> Delete<T> for Vec<T>
 // where
 //     for<'a> T: Item<'a> 
@@ -163,21 +181,6 @@ where
 //     }
 // }
 
-impl<T> Replace<T> for Vec<T> 
-where
-    for<'a> T: Item<'a> 
-{
-    fn replace(&mut self, item: &T) -> Result<&T, Error> {
-        if let Some((loc, _item)) = self.find_mut(item) {
-            *_item = item.clone();
-            Ok(self.get(loc).expect("should exist jsut added"))
-        } else {
-            Err(Error::new())
-        }
-    }
-}
-
-// Ex It 1
 // impl<T> Replace<T> for Vec<T>
 // where
 //     for<'a> T: Item<'a> 
@@ -209,8 +212,10 @@ where
 {
     /// Type that maps to T
     /// 
-    type Index: Copy;
+    type Index;
 
+    /// Finds an item and returns it's index and a mutable reference to the item
+    /// 
     fn find_mut(&mut self, item: &T) -> Option<(Self::Index, &mut T)>;
 }
 
@@ -222,8 +227,10 @@ where
 {
     /// Type that maps to T
     /// 
-    type Index: Copy;
+    type Index;
 
+    /// Finds an item and returns it's index and a reference to the item
+    /// 
     fn find(&self, item: &T) -> Option<(Self::Index, &T)>;
 }
 
@@ -235,9 +242,24 @@ where
 {
     /// Type that maps to T
     /// 
-    type Index: Copy;
+    type Index;
 
+    /// Removes an item by index and returns the removed item,
+    /// 
     fn remove_by_index(&mut self, index: Self::Index) -> Option<T>;
+}
+
+/// Trait for inserting an item
+/// 
+pub trait InsertItem<T> 
+where
+    for<'a> T: Item<'a>
+{
+    type Index;
+
+    /// Inserts an item and returns the index
+    /// 
+    fn insert_item(&mut self, item: &T) -> Result<Self::Index, Error>;
 }
 
 impl<T> FindMut<T> for Vec<T> 
@@ -284,5 +306,19 @@ where
 
     fn remove_by_index(&mut self, loc: Self::Index) -> Option<T> {
         Some(self.remove(loc))
+    }
+}
+
+impl<T> InsertItem<T> for Vec<T> 
+where
+    for<'a> T: Item<'a>
+{
+    type Index = usize;
+
+    fn insert_item(&mut self, item: &T) -> Result<Self::Index, Error> {
+        let index = self.len();
+        let cloned = item.clone();
+        self.push(cloned);
+        Ok(index)
     }
 }

@@ -9,3 +9,4 @@ edition = "2021"
 async-trait = "0.1.68"
 serde = { version="1.0.163", features = ["serde_derive"] }
 tokio = "1.28.1"
+talk-derive = { path = "../talk-derive" }

@@ -7,6 +7,7 @@ pub mod descriptor;
 pub use descriptor::*;
 pub mod item;
 pub use item::*;
+pub use talk_derive::*;
 
 #[derive(Debug)]
 pub struct Error {
