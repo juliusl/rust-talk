@@ -20,22 +20,23 @@ fn main() -> Result<(), Error> {
             );
         memory_store.create(&desc)?.clone()
     };
+    println!("Created: {:?}", created);
 
     // Test reading the item
-    let test = memory_store.read(&created)?;
-    println!("read: {:#?}", test);
+    // let test = memory_store.read(&created)?;
+    // println!("read: {:#?}", test);
 
     // Test replacing the item
-    let mut replacement = created.clone();
-    replacement.set_digest("better-test-digest");
-    let replaced = memory_store.replace(&replacement)?.clone();
-    let test = memory_store.read(&created)?;
-    println!("read replacement: {:#?}", test);
-    println!("{} items", memory_store.iter_items().count());
+    // let mut replacement = created.clone();
+    // replacement.set_digest("better-test-digest");
+    // let replaced = memory_store.replace(&replacement)?.clone();
+    // let test = memory_store.read(&created)?;
+    // println!("read replacement: {:#?}", test);
+    // println!("{} items", memory_store.iter_items().count());
 
     // Test deleting the item
-    let deleted = memory_store.delete(&replaced)?;
-    println!("deleted: {:#?}", deleted);
-    println!("{} items", memory_store.iter_items().count());
+    // let deleted = memory_store.delete(&replaced)?;
+    // println!("deleted: {:#?}", deleted);
+    // println!("{} items", memory_store.iter_items().count());
     Ok(())
 }
