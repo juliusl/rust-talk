@@ -1,14 +1,5 @@
 use serde::{Serialize, Deserialize};
 
-/// Super-trait representing an item,
-/// 
-pub trait Item<'a> : Clone + AsMut<BaseItem> + AsRef<BaseItem> + Serialize + Deserialize<'a> 
-{
-    fn partition(&self) -> &str;
-
-    fn id(&self) -> &str;
-}
-
 /// Struct containing the base record data from a store
 ///
 #[derive(Clone, Default, Serialize, Deserialize, Debug)]
@@ -67,4 +58,17 @@ pub enum ManagementState {
     SoftDeleteInitiated,
     SoftDeleted,
     Pending,
+}
+
+/// Super-trait representing an item,
+/// 
+pub trait Item<'a> : Clone + AsMut<BaseItem> + AsRef<BaseItem> + Serialize + Deserialize<'a> 
+{
+    /// Returns the partion as a str
+    /// 
+    fn partition(&self) -> &str;
+
+    /// Returns the id as a str 
+    /// 
+    fn id(&self) -> &str;
 }

@@ -8,13 +8,25 @@ use crate::BaseItem;
 ///
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct Descriptor {
+    /// Digest this descriptor represents
+    /// 
     digest: String,
+    /// Media-type this descriptor represents
+    /// 
     #[serde(rename = "mediaType")]
     media_type: String,
+    /// Artifact-type this descriptor represents
+    /// 
     #[serde(rename = "artifactType")]
     artifact_type: String,
+    /// Size in bytes of the content this descriptor represents
+    /// 
     size: usize,
+    /// Ordered map of annotations of this image
+    /// 
     annotations: BTreeMap<String, String>,
+    /// Base item used to organize and index this descriptor
+    /// 
     #[serde(skip)]
     _base_item: BaseItem,
 }

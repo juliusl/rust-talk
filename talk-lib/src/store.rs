@@ -2,6 +2,7 @@ use serde::Serialize;
 use serde::Deserialize;
 use crate::Item;
 use crate::Error;
+
 mod memory;
 pub use memory::MemoryStore;
 
@@ -202,8 +203,6 @@ where
 //     }
 // }
 
-// TODO: Segway into code gen
-
 /// Trait for a collection of T, that can be used to find a mutable reference to T
 /// 
 pub trait FindMut<T>
@@ -260,6 +259,14 @@ where
     /// Inserts an item and returns the index
     /// 
     fn insert_item(&mut self, item: &T) -> Result<Self::Index, Error>;
+}
+
+/// Super-trait representing storage,
+/// 
+pub trait Storage<T, Index> : FindMut<T, Index = Index> + Find<T, Index = Index> + RemoveByIndex<T, Index = Index> + InsertItem<T, Index = Index> 
+where
+    for<'a> T: Item<'a>
+{
 }
 
 impl<T> FindMut<T> for Vec<T> 
