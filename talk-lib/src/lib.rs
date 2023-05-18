@@ -8,6 +8,9 @@ pub use descriptor::*;
 pub mod item;
 pub use item::*;
 pub use talk_derive::*;
+pub mod storage;
+pub use storage::*;
+pub use storage::vec::*;
 
 #[derive(Debug)]
 pub struct Error {
